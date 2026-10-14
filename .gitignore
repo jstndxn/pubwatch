@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────
+# PERSONAL DATA — never commit
+#
+# This project reads and writes records about named individuals.
+# Everything below stays local. If you are about to force-add
+# something here, stop and think about whose name is in it.
+# ─────────────────────────────────────────────────────────────
+
+# Rosters: names, advisors, cohort years
+data/roster.json
+data/*roster*.json
+data/cohorts.json
+data/*cohorts*.json
+
+# Metric snapshots: per-person publication and citation figures
+data/*snapshot*.json
+data/phdmetrics-*.json
+data/pubwatch-*.json
+
+# Identity decisions: names paired with ORCIDs and human judgements
+data/*overrides*.json
+data/*review*.json
+
+# Crawl state
+data/_*partial*.json
+data/*advisors*.json
+
+# Reports naming individuals
+*.pdf
+reports/
+
+# Local config with your folder IDs and contact email
+src/Config.gs
+config.gs
+
+# Editor / OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+node_modules/
+__pycache__/

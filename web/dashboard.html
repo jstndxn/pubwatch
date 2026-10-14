@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PhD Research Metrics — your department</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #fff; --panel: #f7f7f5; --line: #e3e3df; --ink: #1a1a18; --mute: #6d6d67;
+  --card: #8c1515; --good: #2f6b4f; --warn: #8a6a1c;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 70px; }
+h1 { font-size: 20px; margin: 0 0 3px; letter-spacing: -0.01em; }
+.sub { color: var(--mute); font-size: 12.5px; margin: 0 0 16px; max-width: 88ch; }
+
+.caution { border: 1px solid #e0cdcd; background: #fdf7f7; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 18px; font-size: 12.5px; color: #5d3535; max-width: 100ch; }
+.caution b { color: var(--card); }
+
+.bar { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 9px; }
+.lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--mute);
+  margin-right: 3px; }
+.pill { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 5px 12px;
+  font-size: 12px; cursor: pointer; color: var(--mute); user-select: none;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease); }
+.pill:hover { color: var(--ink); border-color: var(--ink); }
+.pill.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+select, input[type=search] { font: inherit; font-size: 12.5px; padding: 6px 9px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line);
+  vertical-align: top; }
+th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mute);
+  cursor: pointer; white-space: nowrap; user-select: none; position: sticky; top: 0;
+  background: #fff; border-bottom: 1px solid var(--ink); z-index: 2; }
+th:hover { color: var(--ink); }
+th .ar { opacity: 0.4; }
+th.sorted { color: var(--ink); }
+th.sorted .ar { opacity: 1; color: var(--card); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr { transition: background 0.2s var(--ease); }
+tbody tr:hover { background: var(--panel); }
+
+.rk { font-weight: 700; font-variant-numeric: tabular-nums; }
+.nm { font-weight: 600; }
+.nm a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+.nm a:hover { border-color: var(--ink); }
+.sm { font-size: 11.5px; color: var(--mute); }
+.pct { display: inline-flex; align-items: center; gap: 6px; }
+.pctbar { width: 46px; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.pctbar i { display: block; height: 100%; background: var(--card);
+  transform-origin: 0 50%; transform: scaleX(0); transition: transform 0.7s var(--ease); }
+tr.lit .pctbar i { transform: scaleX(var(--p)); }
+.chip { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px;
+  border-radius: 4px; border: 1px solid var(--line); color: var(--mute); white-space: nowrap; }
+.chip.hi { border-color: #bcd6c6; background: #eef5f0; color: var(--good); }
+.chip.md { border-color: #e0d3ac; background: #fbf7ea; color: var(--warn); }
+.chip.lo { border-color: #e0cdcd; background: #fdf7f7; color: var(--card); }
+.dash { color: var(--line); }
+
+details { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; font-size: 12.5px; color: var(--mute); }
+details .body { font-size: 12.5px; color: var(--mute); max-width: 92ch; margin-top: 12px; }
+details .body h4 { color: var(--ink); font-size: 12.5px; margin: 16px 0 5px; }
+details .body ul { margin: 5px 0 0; padding-left: 18px; }
+details .body li { margin-bottom: 4px; }
+code { background: var(--panel); padding: 1px 4px; border-radius: 3px; font-size: 11.5px; }
+
+.short { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; margin-top: 18px;
+  font-size: 12.5px; color: var(--mute); }
+.short b { color: var(--ink); font-weight: 600; }
+.loading, .err { padding: 40px 0; color: var(--mute); font-size: 13px; }
+.err { color: var(--card); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.stat { border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px; min-width: 92px; }
+.stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mute); }
+@media (max-width: 820px) {
+  .hideS { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
+  .pctbar i { transform: scaleX(var(--p)) !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PhD Research Metrics</h1>
+  <p class="sub">Tracking output for Psychology PhD students over a rolling six-year window
+    (2020&ndash;2026). Cohort and area come from the Master Directory; metrics are refreshed daily
+    and written to the PubWatch folder in Drive.</p>
+
+  <div class="caution" style="border-color:#d8b9b9;background:#fbf0f0">
+    <b>Coverage is partial, and the gaps are not random.</b> Figures come from Crossref and count
+    only work co-authored with the student&rsquo;s listed advisor &mdash; Crossref has no author
+    identifiers, so advisor co-authorship is the sole reliable way to tell a student from a
+    namesake. Two consequences worth holding onto:
+    <br><br>
+    <b>1. Independent work is invisible.</b> A paper published without the advisor is not counted.
+    Every number here is a floor.
+    <br>
+    <b>2. Conference proceedings are largely missing.</b> CogSci and similar venues are mostly not
+    DOI-registered, so Crossref cannot see them. This undercounts Cognition and Developmental
+    students specifically, relative to areas that publish in journals. In the pilot, a student who is first author on a CogSci paper showed zero here.
+    <br><br>
+    So a low number may mean low output, or it may mean the student publishes somewhere this
+    method cannot reach. <b>Do not read a zero as a finding.</b>
+  </div>
+
+  <div class="caution">
+    <b>Read the ranking with its limits in view.</b> A composite score is only as good as its
+    coverage, and coverage here is uneven. Citation counts favour senior cohorts mechanically,
+    and accrue several times faster in Neuroscience than in Developmental work, so the
+    <b>within-cohort percentile</b> is the more defensible column. Students below the coverage
+    threshold are listed separately rather than ranked low by default. Nothing here measures
+    teaching, mentoring, service, methods work, or the quality of a dissertation in progress.
+  </div>
+
+  <div id="app"><div class="loading">Reading from Drive…</div></div>
+</div>
+
+<script>
+// Set to the Drive folder holding your data files.
+const FOLDER = 'PUT_YOUR_DRIVE_FOLDER_ID_HERE';
+const AREAS = ['Affective Science','Cognition','Developmental','Neuroscience','Social Psychology','Unassigned'];
+const CURRENT_ACADEMIC = 2027; // Autumn 2026 = academic year 2026-27
+
+/* Composite weights. Shown in the methodology panel so the score is never a black box. */
+const WEIGHTS = {
+  pubs_first:         0.30,
+  pubs_total:         0.15,
+  citations:          0.20,
+  h_index:            0.15,
+  top_venue_share:    0.10,
+  coauthors_distinct: 0.10
+};
+const MIN_COVERAGE = 0.35; // must have weights summing to this before a rank is assigned
+
+const E = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/**
+ * Undo Drive's markdown escaping.
+ *
+ * The second replace is the important one. A literal double quote inside a
+ * JSON string value is written as \" and Drive escapes the backslash again on
+ * read, giving \\" — which JSON.parse reads as an escaped backslash followed
+ * by a string terminator, and the parse dies. This restores the valid escape.
+ * A complete 60KB snapshot failed to load for exactly this reason.
+ */
+const unmd = s => s
+  .replace(/\\\\"/g, '\\"')
+  .replace(/\\([_\[\]&~*#`>|+.!(){}=-])/g, '$1');
+
+async function tool(n, a) {
+  const r = await window.cowork.callMcpTool(n, a);
+  if (r.isError) throw new Error(n.split('__').pop());
+  return r.structuredContent ?? JSON.parse(r.content[0].text);
+}
+async function readJson(fileId, label) {
+  const p = await tool('mcp__YOUR_DRIVE_CONNECTOR__read_file_content', { fileId });
+  const raw = typeof p === 'string' ? p : (p.fileContent ?? '');
+  try {
+    return JSON.parse(unmd(raw));
+  } catch (e) {
+    // Distinguish a truncated read from genuinely malformed JSON. Large Drive
+    // files come back clipped, which looks like a syntax error at the end.
+    const tail = raw.slice(-60).replace(/\s+/g, ' ');
+    const looksCut = !/[\]}]\s*$/.test(raw.trim());
+    console.error('readJson failed for ' + (label || fileId) +
+      ' — received ' + raw.length + ' chars, ends: "' + tail + '"');
+    throw new Error(
+      (label || 'file') + ' could not be parsed. Received ' +
+      raw.length.toLocaleString() + ' characters' +
+      (looksCut ? ', and the content is cut off mid-structure — the file is too large for one read.'
+                : '. The JSON appears malformed.')
+    );
+  }
+}
+
+let students = [], cohortDoc = null, measured = '';
+let fArea = 'All', fCohort = 'All', fQuery = '', sortCol = 'rank', sortDir = 1;
+
+/* ---------- ranking maths ---------- */
+
+/* Percentile of v within arr (0..1). Ties share the midpoint. */
+function pctile(arr, v) {
+  if (!arr.length) return null;
+  let below = 0, equal = 0;
+  arr.forEach(x => { if (x < v) below++; else if (x === v) equal++; });
+  return (below + equal / 2) / arr.length;
+}
+
+/* Composite over whatever metrics a student actually has, renormalised by
+   the weight that was available. Returns {score, coverage}. */
+function composite(s, pool) {
+  let num = 0, wsum = 0;
+  Object.keys(WEIGHTS).forEach(k => {
+    const v = s[k];
+    if (v == null) return;
+    const vals = pool.map(p => p[k]).filter(x => x != null);
+    if (vals.length < 2) return;
+    const p = pctile(vals, v);
+    if (p == null) return;
+    num += p * WEIGHTS[k];
+    wsum += WEIGHTS[k];
+  });
+  if (!wsum) return { score: null, coverage: 0 };
+  return { score: num / wsum, coverage: wsum };
+}
+
+function scoreAll() {
+  const pool = students.filter(s => s.hasData);
+
+  students.forEach(s => {
+    const c = composite(s, pool);
+    s.score = c.score;
+    s.coverage = c.coverage;
+  });
+
+  const ranked = students.filter(s => s.score != null && s.coverage >= MIN_COVERAGE)
+    .sort((a, b) => b.score - a.score);
+  ranked.forEach((s, i) => { s.rank = i + 1; });
+  students.forEach(s => { if (s.rank == null) s.rank = null; });
+
+  // within-cohort percentile, computed over the same ranked set
+  const byCohort = {};
+  ranked.forEach(s => {
+    const k = s.cohort == null ? 'unknown' : s.cohort;
+    (byCohort[k] = byCohort[k] || []).push(s);
+  });
+  Object.keys(byCohort).forEach(k => {
+    const grp = byCohort[k];
+    const scores = grp.map(s => s.score);
+    grp.forEach(s => {
+      s.cohortPct = grp.length > 1 ? pctile(scores, s.score) : null;
+      s.cohortN = grp.length;
+      s.cohortRank = grp.slice().sort((a, b) => b.score - a.score).indexOf(s) + 1;
+    });
+  });
+
+  // within-area percentile, same idea
+  const byArea = {};
+  ranked.forEach(s => { (byArea[s.area] = byArea[s.area] || []).push(s); });
+  Object.keys(byArea).forEach(k => {
+    const grp = byArea[k], scores = grp.map(s => s.score);
+    grp.forEach(s => { s.areaPct = grp.length > 1 ? pctile(scores, s.score) : null; });
+  });
+
+  return ranked.length;
+}
+
+/* ---------- render ---------- */
+
+const COLS = [
+  { k: 'rank',       t: '#',            num: true  },
+  { k: 'name',       t: 'Student',      num: false },
+  { k: 'cohort',     t: 'Cohort',       num: true  },
+  { k: 'year',       t: 'Yr',           num: true, hide: true },
+  { k: 'area',       t: 'Area',         num: false },
+  { k: 'cohortPct',  t: 'In cohort',    num: true  },
+  { k: 'areaPct',    t: 'In area',      num: true, hide: true },
+  { k: 'pubs_first', t: '1st auth',     num: true  },
+  { k: 'pubs_total', t: 'Works',        num: true  },
+  { k: 'perYear',    t: 'Works/yr',     num: true, hide: true },
+  { k: 'citations',  t: 'Cites',        num: true  },
+  { k: 'h_index',    t: 'h',            num: true  },
+  { k: 'coauthors_distinct', t: 'Coauth', num: true, hide: true },
+  { k: 'confidence', t: 'Conf.',        num: false }
+];
+
+function cell(s, k) {
+  const d = '<span class="dash">&mdash;</span>';
+  switch (k) {
+    case 'rank':
+      return s.rank ? '<span class="rk">' + s.rank + '</span>' : d;
+    case 'name':
+      return '<span class="nm">' + (s.scholar_url
+          ? '<a href="' + E(s.scholar_url) + '" target="_blank" rel="noopener">' + E(s.name) + '</a>'
+          : E(s.name)) + '</span>' +
+        (s.advisor ? '<div class="sm">' + E(s.advisor) + '</div>' : '');
+    case 'cohort':
+      return s.cohort == null ? '<span class="chip lo">unknown</span>' : s.cohort;
+    case 'year':
+      return s.year == null ? d : s.year;
+    case 'area':
+      return '<span class="sm">' + E(s.area) + '</span>';
+    case 'cohortPct':
+      if (s.cohortPct == null) return s.rank ? '<span class="sm">only one ranked</span>' : d;
+      return '<span class="pct"><span class="pctbar" style="--p:' + s.cohortPct.toFixed(3) +
+        '"><i></i></span>' + Math.round(s.cohortPct * 100) + '</span>' +
+        '<div class="sm">' + s.cohortRank + ' of ' + s.cohortN + '</div>';
+    case 'areaPct':
+      return s.areaPct == null ? d : Math.round(s.areaPct * 100);
+    case 'perYear':
+      return s.perYear == null ? d : s.perYear.toFixed(2);
+    case 'confidence': {
+      const c = s.confidence || 'none';
+      const cls = c === 'high' ? 'hi' : c === 'medium' ? 'md' : 'lo';
+      return '<span class="chip ' + cls + '">' + E(c) + '</span>' +
+        '<div class="sm">' + Math.round((s.coverage || 0) * 100) + '% cov</div>';
+    }
+    default: {
+      const v = s[k];
+      return v == null ? d : v;
+    }
+  }
+}
+
+function render() {
+  const app = document.getElementById('app');
+
+  let list = students.slice();
+  if (fArea !== 'All') list = list.filter(s => s.area === fArea);
+  if (fCohort !== 'All') list = list.filter(s => String(s.cohort) === fCohort);
+  if (fQuery.trim()) {
+    const q = fQuery.toLowerCase();
+    list = list.filter(s => (s.name + ' ' + (s.advisor || '') + ' ' + s.area).toLowerCase().includes(q));
+  }
+
+  const ranked = list.filter(s => s.rank != null);
+  const unranked = list.filter(s => s.rank == null);
+
+  ranked.sort((a, b) => {
+    let x = a[sortCol], y = b[sortCol];
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    if (typeof x === 'string') return sortDir * x.localeCompare(y);
+    return sortDir * (x - y);
+  });
+
+  const cohorts = Array.from(new Set(students.map(s => s.cohort).filter(c => c != null)))
+    .sort((a, b) => a - b);
+
+  const th = COLS.map(c =>
+    '<th class="' + (c.num ? 'num ' : '') + (c.hide ? 'hideS ' : '') +
+    (sortCol === c.k ? 'sorted' : '') + '" data-k="' + c.k + '">' + c.t +
+    (sortCol === c.k ? ' <span class="ar">' + (sortDir === 1 ? '↑' : '↓') + '</span>' : '') +
+    '</th>').join('');
+
+  const rows = ranked.map(s =>
+    '<tr class="lit">' + COLS.map(c =>
+      '<td class="' + (c.num ? 'num ' : '') + (c.hide ? 'hideS' : '') + '">' + cell(s, c.k) + '</td>'
+    ).join('') + '</tr>').join('');
+
+  app.innerHTML =
+    '<div class="stats">' +
+      '<div class="stat"><b>' + students.length + '</b><span>students</span></div>' +
+      '<div class="stat"><b>' + students.filter(s => s.rank != null).length + '</b><span>ranked</span></div>' +
+      '<div class="stat"><b>' + students.filter(s => s.rank == null).length + '</b><span>below threshold</span></div>' +
+      '<div class="stat"><b>' + cohorts.length + '</b><span>cohorts</span></div>' +
+      '<div class="stat"><b>' + (measured || '—') + '</b><span>last measured</span></div>' +
+    '</div>' +
+
+    '<div class="bar"><span class="lbl">Area</span>' +
+      ['All'].concat(AREAS).map(a =>
+        '<span class="pill ' + (fArea === a ? 'on' : '') + '" data-f="area" data-v="' + E(a) + '">' +
+        E(a === 'Affective Science' ? 'Affective' : a === 'Social Psychology' ? 'Social' : a) +
+        '</span>').join('') +
+    '</div>' +
+
+    '<div class="bar"><span class="lbl">Cohort</span>' +
+      ['All'].concat(cohorts.map(String)).map(c =>
+        '<span class="pill ' + (fCohort === c ? 'on' : '') + '" data-f="cohort" data-v="' + E(c) + '">' +
+        E(c) + '</span>').join('') +
+      '<input type="search" id="q" placeholder="Search name or advisor" value="' + E(fQuery) + '" style="flex:1;min-width:160px">' +
+    '</div>' +
+
+    (ranked.length
+      ? '<div style="overflow-x:auto"><table><thead><tr>' + th + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      : '<div class="short">No ranked students match this filter.</div>') +
+
+    (unranked.length
+      ? '<div class="short"><b>Below the coverage threshold (' + unranked.length + ')</b> — ' +
+        'not enough measured data to place these students fairly, so they are listed rather than ranked. ' +
+        'Most are recent cohorts with no indexed output yet.<div style="margin-top:9px">' +
+        unranked.map(s => E(s.name) + '<span class="sm"> · ' +
+          (s.cohort == null ? 'cohort unknown' : s.cohort) + '</span>').join(' &nbsp;·&nbsp; ') +
+        '</div></div>'
+      : '') +
+
+    '<details><summary>Methodology, weights, and what this does not measure</summary><div class="body">' +
+      '<h4>Window</h4><p>Metrics count output published 2020 through 2026. Anything earlier is excluded.</p>' +
+      '<h4>Composite score</h4><p>Each metric is converted to a percentile across the ranked pool, then ' +
+      'combined with these weights:</p><ul>' +
+      Object.keys(WEIGHTS).map(k => '<li><code>' + k + '</code> — ' + Math.round(WEIGHTS[k] * 100) + '%</li>').join('') +
+      '</ul><p>A student is only scored on the metrics actually measured for them, and the result is ' +
+      'renormalised by the weight available. Coverage below ' + Math.round(MIN_COVERAGE * 100) +
+      '% means no rank is assigned.</p>' +
+      '<h4>Cohort convention</h4><p>' + E(cohortDoc && cohortDoc.cohort_convention
+        ? cohortDoc.cohort_convention.meaning + ' ' + cohortDoc.cohort_convention.caveat
+        : 'Cohort labels come from the "What Cohort" column of the directory.') + '</p>' +
+      '<h4>Known distortions</h4><ul>' +
+      '<li>Citation counts rise with time enrolled, so the overall rank partly measures seniority.</li>' +
+      '<li>Citation velocity differs sharply by area; Neuroscience accrues faster than Developmental or Social.</li>' +
+      '<li>h-index is near zero for most students and cannot discriminate within recent cohorts.</li>' +
+      '<li>Author position conventions differ by lab and subfield, so first-author counts are not perfectly comparable.</li>' +
+      '<li>Seed citation figures are lifetime Google Scholar totals, not window-limited, and are flagged medium confidence until replaced with OpenAlex data.</li>' +
+      '<li>Namesake collisions are a live risk for common names. The <code>notes</code> field records how each match was made.</li>' +
+      '</ul>' +
+      '<h4>Not measured</h4><p>Teaching and TA load, mentoring, committee and service work, ' +
+      'methods and tooling contributions, replication and open-science work, data collection effort, ' +
+      'grant and fellowship success, and the state of an unpublished dissertation. A student can be ' +
+      'doing the department\'s most valuable work and sit at the bottom of this table.</p>' +
+    '</div></details>';
+
+  app.querySelectorAll('.pill').forEach(el => el.addEventListener('click', () => {
+    if (el.dataset.f === 'area') fArea = el.dataset.v; else fCohort = el.dataset.v;
+    render();
+  }));
+  app.querySelectorAll('th').forEach(el => el.addEventListener('click', () => {
+    const k = el.dataset.k;
+    if (sortCol === k) sortDir = -sortDir;
+    else { sortCol = k; sortDir = (k === 'rank' || k === 'name' || k === 'area' || k === 'cohort') ? 1 : -1; }
+    render();
+  }));
+  const q = app.querySelector('#q');
+  if (q) {
+    let t;
+    q.addEventListener('input', () => { fQuery = q.value; clearTimeout(t); t = setTimeout(render, 200); });
+  }
+}
+
+/* ---------- boot ---------- */
+(async function boot() {
+  try {
+    const listed = await tool('mcp__YOUR_DRIVE_CONNECTOR__search_files',
+      { query: "parentId = '" + FOLDER + "'", excludeContentSnippets: true, pageSize: 100 });
+    const files = listed.files || [];
+
+    const cf = files.find(f => /phdmetrics-cohorts/i.test(f.title));
+    if (!cf) throw new Error('phdmetrics-cohorts.json not found in the PubWatch folder');
+    cohortDoc = await readJson(cf.id, 'phdmetrics-cohorts.json');
+
+    students = (cohortDoc.students || []).map(s => Object.assign({}, s, {
+      year: s.cohort == null ? null : CURRENT_ACADEMIC + 1 - s.cohort,
+      hasData: false, rank: null
+    }));
+    const idx = new Map(students.map(s => [s.name, s]));
+
+    // newest snapshot wins
+    const snaps = files.filter(f => /^phdmetrics-\d{4}-\d{2}-\d{2}/.test(f.title))
+      .sort((a, b) => b.title.localeCompare(a.title));
+    if (snaps.length) {
+      const snap = await readJson(snaps[0].id, snaps[0].title);
+      measured = snap.measured || snaps[0].title.slice(11, 21);
+      (snap.metrics || []).forEach(m => {
+        const s = idx.get(m.name);
+        if (!s) return;
+        Object.keys(m).forEach(k => { if (k !== 'name') s[k] = m[k]; });
+        // Unconfirmed name matches carry numbers, but they are a hypothesis
+        // about identity rather than a measurement. Show them, never rank them.
+        s.hasData = !m.unconfirmed && Object.keys(WEIGHTS).some(k => m[k] != null);
+      });
+    }
+
+    students.forEach(s => {
+      s.perYear = (s.pubs_total != null && s.year) ? s.pubs_total / s.year : null;
+    });
+
+    scoreAll();
+    render();
+  } catch (e) {
+    document.getElementById('app').innerHTML =
+      '<div class="err">Could not build the table: ' + E(e.message) +
+      '<br><br>Check the Google Drive connector and that the PubWatch folder still holds ' +
+      'phdmetrics-cohorts.json, then hit Reload.</div>';
+  }
+})();
+</script>
+</body>
+</html>
